@@ -1,3 +1,4 @@
+# type: ignore
 from .node import Node
 from .operand import Operand
 from .operator_ import Operator
@@ -117,7 +118,8 @@ class ParseTree:
         for _ in range(self.root.height):
             for n in current_children:
                 if isinstance(n, Operator):
-                    result += ' ' * n.left.width + n.symbol + ' ' * n.right.width + ' ' * self.padding
+                    result += ' ' * n.left.width + n.symbol + \
+                        ' ' * n.right.width + ' ' * self.padding
                 elif isinstance(n, Operand):
                     result += str(n.value) + ' ' * self.padding
                 elif isinstance(n, Node):
@@ -135,7 +137,9 @@ class ParseTree:
                     space_2 = n.left.width - space_1 - 1
                     space_3 = n.right.width // 2
                     space_4 = n.right.width - space_3 - 1
-                    result += ' ' * space_1 + self.left_edge + ' ' * (space_2 + self.padding + space_3) + self.right_edge + ' ' * (space_4 + self.padding)
+                    result += ' ' * space_1 + self.left_edge + ' ' * \
+                        (space_2 + self.padding + space_3) + \
+                        self.right_edge + ' ' * (space_4 + self.padding)
                 elif isinstance(n, Operand):
                     result += ' ' * (n.width + self.padding)
             result += '\n'

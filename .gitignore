@@ -1,5 +1,9 @@
-# Build files
+# Build Files
 dist/
+
+# Temporary Files
+tmp/
+tmp*
 
 # Virtual Environment
 .venv

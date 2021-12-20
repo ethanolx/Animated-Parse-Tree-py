@@ -1,1 +1,1 @@
-from v1 import ParseTree
+from .parse_tree import ParseTree
