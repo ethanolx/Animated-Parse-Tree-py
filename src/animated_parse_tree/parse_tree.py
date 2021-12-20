@@ -1,7 +1,5 @@
 from typing import Dict, List, Optional, Union, cast
-
 from .utils.list_utils import find_element_where, index_first_element
-
 from .utils.string_utils import simplify_expression
 from .exceptions import LexingError, ParsingError, RegistrationError, TokenizationError
 from .tree import Tree
@@ -80,7 +78,7 @@ class ParseTree(Tree):
                 raise RegistrationError(
                     f'Unknown Operand/Operator encountered: {type(op)}')
 
-    def lex_token(self, token: Optional[str] = None) -> Union[Operand, List[Operator]]:
+    def lex_token(self, token: Optional[str] = None) -> Union[Operand, Operator, List[Operator]]:
         if token is not None:
             if token in self.token_lookup:
                 if isinstance(self.token_lookup[token], List):
@@ -89,7 +87,7 @@ class ParseTree(Tree):
                     return cast(Operand, deepcopy(self.token_lookup[token]))
             raise LexingError(f'Unknown token {token} encountered')
         else:
-            return [deepcopy(self.implicit_operator)]
+            return deepcopy(self.implicit_operator)
 
     def read(self, expression: str) -> Tree:
         self.expression = expression
@@ -153,7 +151,7 @@ class ParseTree(Tree):
     # Lexer
 
     def lex(self, tokens: List[str]):
-        lexed_token_list: List = []
+        lexed_token_list: List[Union[Operand, Operator, List[Operator], str]] = []
 
         digit_set = set('0123456789.')
 
@@ -170,7 +168,7 @@ class ParseTree(Tree):
                     lexed_token_list.append(self.lex_token(token=token))
                 elif isinstance(token_obj, List):
                     if len(token_obj) == 1:
-                        lexed_token_list.append(self.lex_token(token=token)[0])
+                        lexed_token_list.append(cast(List[Operator], self.lex_token(token=token))[0])
                     else:
                         lexed_token_list.append(self.lex_token(token=token))
         return lexed_token_list
@@ -178,21 +176,23 @@ class ParseTree(Tree):
     # Parser
 
     def parse(self, token_obj_list: List, operand_expected: bool = True, index: int = 0, depth: int = 0):
-        parsed_tokens = []
+        parsed_tokens: List = []
         while index < len(token_obj_list):
             token_obj = token_obj_list[index]
+            print(token_obj, operand_expected)
             if token_obj == ')':
                 operand_expected = False
                 if depth > 0:
-                    return index, parsed_tokens
+                    return index, parsed_tokens, operand_expected
             elif token_obj == '(':
                 if not operand_expected:
                     parsed_tokens.append(self.lex_token())
-                terminating_index, nested_parsed_tokens = self.parse(
+                terminating_index, nested_parsed_tokens, operand_expected = self.parse(
                     token_obj_list=token_obj_list, operand_expected=True, index=index + 1, depth=depth + 1)
                 parsed_tokens.append(nested_parsed_tokens)
                 index = terminating_index
             elif type(token_obj) is list:
+                # Operator overloaded
                 token_obj = find_element_where(
                     ls=token_obj, condition=lambda el: el.kind == 'pre' if operand_expected else el.kind != 'pre')
                 operand_expected = self.insert_token_obj(parsed_tokens=parsed_tokens, token_obj=token_obj, operand_expected=operand_expected)
@@ -201,6 +201,15 @@ class ParseTree(Tree):
             index += 1
         return parsed_tokens
 
+    def __parse_open_parenthesis(self, lexed_tokens: List, parsed_tokens: List, index: int, operand_expected: bool, depth: int):
+        if operand_expected:
+            pass
+        else:
+            # Attempt implicit operation
+            parsed_tokens.append(self.lex_token())
+        parsed_tokens.append('')
+
+
     def insert_token_obj(self, parsed_tokens: List[Union[Operand, Operator]], token_obj: Union[Operand, Operator], operand_expected: bool) -> bool:
         if operand_expected and isinstance(token_obj, Operand):
             parsed_tokens.append(token_obj)
@@ -208,7 +217,12 @@ class ParseTree(Tree):
         elif operand_expected and isinstance(token_obj, Operator) and token_obj.kind == 'pre':
             parsed_tokens.append(token_obj)
             return True
-        elif (not operand_expected) and isinstance(token_obj, Operator) and token_obj.kind != 'pre':
+        elif (not operand_expected) and isinstance(token_obj, Operator) and token_obj.kind == 'pre':
+            # Implicit Multiplication
+            parsed_tokens.append(cast(Operator, self.lex_token()))
+            parsed_tokens.append(token_obj)
+            return True
+        elif (not operand_expected) and isinstance(token_obj, Operator):
             parsed_tokens.append(token_obj)
             return True
         elif (not operand_expected) and isinstance(token_obj, Operand):
@@ -222,15 +236,14 @@ class ParseTree(Tree):
         else:
             raise ParsingError('Unknown error encountered. Please check your expression again.')
 
-    def build_sub_tree(self, token_obj_list: List, depth: int = 0):
+    def build_sub_tree(self, token_obj_list: List):
         for token_obj in token_obj_list:
             if type(token_obj) is list:
                 t = ParseTree()
                 sub_root, _ = t.build_sub_tree(token_obj_list=token_obj)
                 if sub_root is None:
                     raise ParsingError('Empty parenthesis encountered')
-                tmptmp = ParseTree()
-                tmptmp.root = sub_root
+                sub_root.priority += 20
                 self.insert(sub_root)
             else:
                 self.insert(token_obj)
@@ -244,11 +257,14 @@ class ParseTree(Tree):
         self.build_sub_tree(parsed_tokens)
 
     def __str__(self) -> str:
-        self()
+        if self.root is None:
+            # self()
+            return ''
         return super().__str__()
 
     def evaluate(self) -> Optional[Union[int, float]]:
-        self()
+        if self.root is None:
+            self()
         self.update(which='values')
         return self.root.value if self.root is not None else None
 

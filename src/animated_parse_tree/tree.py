@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Union, cast
+from typing import List, Literal, Optional, cast
 
 from .exceptions import TreeReprError, UpdateTreeError
 from .temp_node import Temp_Node
@@ -25,6 +25,7 @@ class Tree:
         elif not self.currentPointer.isFull():
             node.parent = self.currentPointer
             self.currentPointer.children.append(node)
+            self.currentPointer = node
         else:
             if node > self.currentPointer:
                 node.children.append(self.currentPointer.children.pop())

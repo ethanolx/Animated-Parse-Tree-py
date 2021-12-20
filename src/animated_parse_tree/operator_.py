@@ -35,31 +35,3 @@ class Operator(Node):
 
     def isFull(self) -> bool:
         return len(self.children) == self.operands
-
-    def __lt__(self, otherNode) -> bool:
-        if isinstance(otherNode, Operator):
-            return self.priority < otherNode.priority
-        elif isinstance(otherNode, Operand):
-            return True
-        raise
-
-    def __le__(self, otherNode) -> bool:
-        if isinstance(otherNode, Operator):
-            return self.priority <= otherNode.priority
-        elif isinstance(otherNode, Operand):
-            return True
-        raise
-
-    def __gt__(self, otherNode) -> bool:
-        if isinstance(otherNode, Operator):
-            return self.priority > otherNode.priority
-        elif isinstance(otherNode, Operand):
-            return False
-        raise
-
-    def __ge__(self, otherNode) -> bool:
-        if isinstance(otherNode, Operator):
-            return self.priority >= otherNode.priority
-        elif isinstance(otherNode, Operand):
-            return False
-        raise

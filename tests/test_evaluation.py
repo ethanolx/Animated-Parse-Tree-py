@@ -13,7 +13,8 @@ def test_evaluation(sample_list):
 
 @pytest.mark.parametrize('sample_list', [
     ['1 + 2 * 3', 7],
-    ['20.0 * 41 / 2 ^ 0', 820.0]
+    ['20.0 * 41 / 2 ^ 0', 820.0],
+    ['5.5 * 2 / 11 + 1.5', 2.5]
 ])
 def test_infix_operators(sample_list):
     test_evaluation(sample_list=sample_list)
@@ -40,7 +41,4 @@ def test_implicit_multiplication(sample_list):
     ['54 + -1', 53]
 ])
 def test_unary_operators(sample_list):
-    t = ParseTree()
-    t.read(sample_list[0])
-    print(t)
     test_evaluation(sample_list=sample_list)

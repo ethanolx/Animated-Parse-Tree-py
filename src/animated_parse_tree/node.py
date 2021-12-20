@@ -9,6 +9,7 @@ class Node:
         self.children: List[Node] = []
         self.value: Any = value
         self.height: int = 1
+        self.priority: int = -1
         self.width: int = 0
 
     @abstractmethod
@@ -19,21 +20,17 @@ class Node:
     def isEmpty(self) -> bool:
         pass
 
-    @abstractmethod
     def __lt__(self, otherNode) -> bool:
-        pass
+        return self.priority < otherNode.priority
 
-    @abstractmethod
     def __le__(self, otherNode) -> bool:
-        pass
+        return self.priority <= otherNode.priority
 
-    @abstractmethod
     def __gt__(self, otherNode) -> bool:
-        pass
+        return self.priority > otherNode.priority
 
-    @abstractmethod
     def __ge__(self, otherNode) -> bool:
-        pass
+        return self.priority >= otherNode.priority
 
     def __call__(self) -> Any:
         return self.value
