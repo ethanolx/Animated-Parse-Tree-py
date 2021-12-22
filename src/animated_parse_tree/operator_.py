@@ -1,6 +1,4 @@
 from typing import Callable, List, Literal, Union
-
-from .operand_ import Operand
 from .exceptions import ReduceTreeError
 from .node import Node
 

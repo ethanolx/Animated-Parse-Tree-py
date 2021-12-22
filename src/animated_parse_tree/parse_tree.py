@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Union, cast
 from .utils.list_utils import find_element_where, index_first_element
 from .utils.string_utils import simplify_expression
-from .exceptions import LexingError, ParsingError, RegistrationError, TokenizationError
+from .exceptions import BuildTreeError, LexingError, ParsingError, RegistrationError, TokenizationError
 from .tree import Tree
 from .default_bundles import *
 from string import ascii_lowercase
@@ -15,16 +15,18 @@ class ParseTree(Tree):
                      BASICS,
                      CONSTANTS,
                      EXPONENTIATION,
-                     TRIGONOMETRY
+                     TRIGONOMETRY,
+                     FACTORIAL
                  ],
+                 implicit_operator: Optional[Operator] = Operator(
+                     symbol='.', func=lambda a, b: a * b, priority=19),
                  **kwargs):
         super().__init__(**kwargs)
         self.expression = ''
         self.token_lookup: Dict[str, Union[List[Operator], Operand]] = dict()
         for bundle in bundles:
             self.register(bundle=bundle)
-        self.implicit_operator = Operator(
-            symbol='*', func=lambda a, b: a * b, priority=5)
+        self.implicit_operator = implicit_operator
 
     def validate_registration(self, token):
         return
@@ -89,6 +91,13 @@ class ParseTree(Tree):
         else:
             return deepcopy(self.implicit_operator)
 
+    def deregister(self, symbol: Optional[str] = None):
+        if symbol is None:
+            self.token_lookup = {}
+        else:
+            self.token_lookup.pop(symbol)
+        return self
+
     def read(self, expression: str) -> Tree:
         self.expression = expression
         return self
@@ -151,12 +160,20 @@ class ParseTree(Tree):
     # Lexer
 
     def lex(self, tokens: List[str]):
-        lexed_token_list: List[Union[Operand, Operator, List[Operator], str]] = []
+        lexed_token_list: List[Union[Operand,
+                                     Operator, List[Operator], str]] = []
 
         digit_set = set('0123456789.')
 
+        open_parentheses_count = 0
+        close_parentheses_count = 0
+
         for token in tokens:
             if token in '(,)':
+                if token == '(':
+                    open_parentheses_count += 1
+                elif token == ')':
+                    close_parentheses_count += 1
                 lexed_token_list.append(token)
             elif token[0] in digit_set:
                 # Normal numeric operand
@@ -168,9 +185,13 @@ class ParseTree(Tree):
                     lexed_token_list.append(self.lex_token(token=token))
                 elif isinstance(token_obj, List):
                     if len(token_obj) == 1:
-                        lexed_token_list.append(cast(List[Operator], self.lex_token(token=token))[0])
+                        lexed_token_list.append(
+                            cast(List[Operator], self.lex_token(token=token))[0])
                     else:
                         lexed_token_list.append(self.lex_token(token=token))
+        if close_parentheses_count != open_parentheses_count:
+            raise LexingError(
+                f'{open_parentheses_count} \'(\' does not match {close_parentheses_count} \')\'')
         return lexed_token_list
 
     # Parser
@@ -179,7 +200,6 @@ class ParseTree(Tree):
         parsed_tokens: List = []
         while index < len(token_obj_list):
             token_obj = token_obj_list[index]
-            print(token_obj, operand_expected)
             if token_obj == ')':
                 operand_expected = False
                 if depth > 0:
@@ -195,9 +215,14 @@ class ParseTree(Tree):
                 # Operator overloaded
                 token_obj = find_element_where(
                     ls=token_obj, condition=lambda el: el.kind == 'pre' if operand_expected else el.kind != 'pre')
-                operand_expected = self.insert_token_obj(parsed_tokens=parsed_tokens, token_obj=token_obj, operand_expected=operand_expected)
+                operand_expected = self.insert_token_obj(
+                    parsed_tokens=parsed_tokens, token_obj=token_obj, operand_expected=operand_expected)
+            elif isinstance(token_obj, Operator) and token_obj.kind == 'post':
+                operand_expected = self.insert_token_obj(
+                    parsed_tokens=parsed_tokens, token_obj=token_obj, operand_expected=operand_expected)
             else:
-                operand_expected = self.insert_token_obj(parsed_tokens=parsed_tokens, token_obj=token_obj, operand_expected=operand_expected)
+                operand_expected = self.insert_token_obj(
+                    parsed_tokens=parsed_tokens, token_obj=token_obj, operand_expected=operand_expected)
             index += 1
         return parsed_tokens
 
@@ -208,7 +233,6 @@ class ParseTree(Tree):
             # Attempt implicit operation
             parsed_tokens.append(self.lex_token())
         parsed_tokens.append('')
-
 
     def insert_token_obj(self, parsed_tokens: List[Union[Operand, Operator]], token_obj: Union[Operand, Operator], operand_expected: bool) -> bool:
         if operand_expected and isinstance(token_obj, Operand):
@@ -222,6 +246,11 @@ class ParseTree(Tree):
             parsed_tokens.append(cast(Operator, self.lex_token()))
             parsed_tokens.append(token_obj)
             return True
+        elif (not operand_expected) and isinstance(token_obj, Operator) and token_obj.kind == 'post':
+            prev_token_obj = parsed_tokens.pop()
+            parsed_tokens.append(token_obj)
+            parsed_tokens.append(prev_token_obj)
+            return operand_expected
         elif (not operand_expected) and isinstance(token_obj, Operator):
             parsed_tokens.append(token_obj)
             return True
@@ -234,7 +263,8 @@ class ParseTree(Tree):
             raise ParsingError(
                 f'Expected operand but received non pre-fix operator {token_obj}')
         else:
-            raise ParsingError('Unknown error encountered. Please check your expression again.')
+            raise ParsingError(
+                'Unknown error encountered. Please check your expression again.')
 
     def build_sub_tree(self, token_obj_list: List):
         for token_obj in token_obj_list:
@@ -250,16 +280,20 @@ class ParseTree(Tree):
         return self.root, self.currentPointer
 
     def build(self):
-        self.reset()
-        tokens = self.tokenize(self.expression)
-        lexed_tokens = self.lex(tokens)
-        parsed_tokens = self.parse(lexed_tokens)
-        self.build_sub_tree(parsed_tokens)
+        if self.expression.strip() != '':
+            self.reset()
+            tokens = self.tokenize(self.expression)
+            lexed_tokens = self.lex(tokens)
+            parsed_tokens = self.parse(lexed_tokens)
+            self.build_sub_tree(parsed_tokens)
+            return self
+        else:
+            raise BuildTreeError(
+                'Attempted to build parse tree with empty expression')
 
     def __str__(self) -> str:
         if self.root is None:
-            # self()
-            return ''
+            self()
         return super().__str__()
 
     def evaluate(self) -> Optional[Union[int, float]]:
@@ -270,3 +304,4 @@ class ParseTree(Tree):
 
     def __call__(self):
         self.build()
+        return self

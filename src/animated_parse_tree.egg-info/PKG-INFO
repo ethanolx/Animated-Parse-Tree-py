@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: animated-parse-tree
-Version: 0.0.7
+Version: 0.0.8
 Summary: A simple parse tree utility package, with animated evaluations and configurable tree displays
 Home-page: https://github.com/ethanolx/Animated-Parse-Tree-py
 Author: ethanolx

@@ -14,9 +14,20 @@ def test_evaluation(sample_list):
 @pytest.mark.parametrize('sample_list', [
     ['1 + 2 * 3', 7],
     ['20.0 * 41 / 2 ^ 0', 820.0],
-    ['5.5 * 2 / 11 + 1.5', 2.5]
+    ['5.5 * 2 / 11 + 1.5', 2.5],
+    ['20 - 34 * 8 ** 3', -17388],
+    ['3 ** 8 * 34 - 20', 223054]
 ])
 def test_infix_operators(sample_list):
+    test_evaluation(sample_list=sample_list)
+
+
+@pytest.mark.parametrize('sample_list', [
+    ['0!', 1],
+    ['1!', 1],
+    ['1 / 0!', 1]
+])
+def test_postfix_operators(sample_list):
     test_evaluation(sample_list=sample_list)
 
 
@@ -30,7 +41,8 @@ def test_parentheses(sample_list):
 
 @pytest.mark.parametrize('sample_list', [
     ['7(10)', 70],
-    ['2pi', 2 * pi]
+    ['2pi', 2 * pi],
+    ['1 / 2(4)', 0.125]
 ])
 def test_implicit_multiplication(sample_list):
     test_evaluation(sample_list=sample_list)
