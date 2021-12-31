@@ -4,7 +4,8 @@ from termcolor import colored
 
 # Expression Errors
 class SyntaxError(Exception):
-    pass
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {super().__str__()}'
 
 
 class TokenizationError(SyntaxError):
@@ -34,6 +35,10 @@ class ParsingError(SyntaxError):
 
 # Tree Errors
 class TreeError(Exception):
+    pass
+
+
+class RegistrationWarning(Warning):
     pass
 
 

@@ -3,6 +3,7 @@ from typing import List, Literal, Optional, cast
 from .exceptions import TreeReprError, UpdateTreeError
 from .temp_node import Temp_Node
 from .node import Node
+from math import ceil
 
 
 class Tree:
@@ -64,6 +65,17 @@ class Tree:
             node.width = sum(map(lambda n: n.width, node.children)
                              ) + (len(node.children) - 1) * self.padding
             node.height = max(map(lambda n: n.height, node.children)) + 1
+            node.bal_coef = node.get_balance_coefficient()
+
+    def update_paddings(self, node: Node):
+        if len(node.children) > 0:
+            node.left_pad += max(ceil((node.inner_width - node.width) / 2), 0)
+            node.right_pad += max((node.inner_width - node.width) // 2, 0)
+            if node.parent is not None:
+                node.left_pad += node.parent.left_pad
+                node.right_pad += node.parent.right_pad
+            for c in node.children:
+                self.update_paddings(c)
 
     def generate_tmp_nodes(self, node: Node, depth: int = 1):
         if len(node.children) > 0:
@@ -87,6 +99,7 @@ class Tree:
         if self.root is not None:
             if which != 'dimensions':
                 self.update_values(node=self.root)
+                self.update_paddings(node=self.root)
             if which != 'values':
                 self.update_dims(node=self.root)
             if which not in ['all', 'dimensions', 'values']:
@@ -114,7 +127,7 @@ class Tree:
                 while len(current_children[0]) > 0:
                     for n_ls in current_children:
                         for n in n_ls:
-                            result += str(n) + ' ' * self.padding
+                            result += n.display() + ' ' * self.padding
                             next_children.append(n.children)
                     result += '\n'
                     current_children = next_children
@@ -124,14 +137,18 @@ class Tree:
                         if no_of_children == 1:
                             n = n_ls[0]
                             if isinstance(n, Temp_Node):
-                                result += str(n) + ' '
+                                result += n.display() + ' ' * self.padding
                             else:
-                                result += f'{self.middle_branch:^{n.width}} '
+                                # result += f'{self.middle_branch:^{n.width}} '
+                                result += n.branch(self.middle_branch) + ' ' * self.padding
                         elif no_of_children > 1:
-                            result += f'{self.left_branch:^{n_ls[0].width}} '
+                            # result += f'{self.left_branch:^{n_ls[0].width}} '
+                            result += n_ls[0].branch(self.left_branch) + ' ' * self.padding
                             for n in n_ls[1:-1]:
-                                result += f'{self.middle_branch:^{n.width}} '
-                            result += f'{self.right_branch:^{n_ls[-1].width}} '
+                                # result += f'{self.middle_branch:^{n.width}} '
+                                result += n.branch(self.middle_branch) + ' ' * self.padding
+                            # result += f'{self.right_branch:^{n_ls[-1].width}} '
+                            result += n_ls[-1].branch(self.right_branch) + ' ' * self.padding
                     result += '\n'
             # Remove 2 redundant newline characters at end of string
             return result[:-2]
