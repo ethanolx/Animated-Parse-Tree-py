@@ -33,14 +33,14 @@ class Operator(Node):
     def display(self):
         if len(self.symbol) <= (self.width - abs(self.bal_coef)):
             if self.bal_coef > 0:
-                return f'{self.symbol:^{self.width - abs(self.bal_coef)}}' + ' ' * abs(self.bal_coef)
+                return ' ' * self.left_pad + f'{self.symbol:^{self.width - abs(self.bal_coef)}}' + ' ' * (abs(self.bal_coef) + self.right_pad)
             else:
-                return ' ' * abs(self.bal_coef) + f'{self.symbol:^{self.width - abs(self.bal_coef)}}'
+                return ' ' * (self.left_pad + abs(self.bal_coef)) + f'{self.symbol:^{self.width - abs(self.bal_coef)}}' + ' ' * self.right_pad
         elif self.bal_coef > 0:
-            return f'{self.symbol:<{self.width}}'
+            return ' ' * self.left_pad + f'{self.symbol:<{self.width}}' + ' ' * self.right_pad
         elif self.bal_coef < 0:
-            return f'{self.symbol:>{self.width}}'
-        return f'{self.symbol:^{self.width}}'
+            return ' ' * self.left_pad + f'{self.symbol:>{self.width}}' + ' ' * self.right_pad
+        return ' ' * self.left_pad + f'{self.symbol:^{self.width}}' + ' ' * self.right_pad
 
     def __repr__(self) -> str:
         return f'Operator({self.symbol}, kind=\'{self.kind}\', operands={self.operands})'

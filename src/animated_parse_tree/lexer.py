@@ -36,9 +36,13 @@ class Lexer:
             if token in '(,)':
                 if token == '(':
                     open_parentheses_count += 1
+                    lexed_token_list.append(token)
                 elif token == ')':
                     close_parentheses_count += 1
-                lexed_token_list.append(token)
+                    lexed_token_list.append(token)
+                else:
+                    lexed_token_list.append(']')
+                    lexed_token_list.append('[')
             elif token[0] in digit_set:
                 # Normal numeric operand
                 num = float(token) if '.' in token else int(token)

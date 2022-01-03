@@ -22,6 +22,34 @@ pip install animated_parse_tree
 
 ## Sample Usage
 
+### From Command Line
+
+Then in your terminal/shell, enter:
+
+```console
+python -m animated_parse_tree
+```
+
+The output should look similar to the following:
+
+```console
+Greetings...
+
+                "This is a utility program which aims
+                    to show the beauty of parse trees
+                           in a fun and engaging way"
+
+Don't be intimidated :)
+It was designed to be easy to use, yet extensible.
+
+                                               Enjoy!
+?>
+```
+
+Enter 'help' to display the help menu or 'mode' to change your current mode
+
+### From Source Files
+
 Then in your Python source file / Jupyter Notebook, insert:
 
 ```python
@@ -46,18 +74,52 @@ The output in the terminal will look something like this:
 
 ```console
 <<< Equation >>>
-1 + 2 * 3 = 7.0
+1 + 2 * 3 = 7
 
 <<< Parse Tree >>>
-   +
- ↙     ↘
-1.0    *
-     ↙   ↘
-    2.0 3.0
+ +
+/  \
+1  *
+  / \
+  2 3
 ```
 
 ## Declaring Custom Operands/Operators
 
-Refer to `bundles.py`
+A `Bundle` is simply a list of Operands and/or Operators.
 
-## See Also
+To extend functionality, one simply has to register their own custom operands/operators like so:
+
+```python
+# Instantiate Parse Tree Object
+t = ParseTree()
+
+# Declaring Custom Operator
+op = Operator(symbol='if', func=lambda a,b,c: b if a == 1 else c, priority=7, kind='pre', operands=3)
+
+# Register the Custom Operator(s)
+t.register(bundle=[op])
+
+# Use it in Expressions
+t.read('if(1, 8, -1)')
+print(t.evaluate())
+```
+
+## Current Support
+
+* Operands
+    * Integers
+    * Floats
+    * Constants (like pi, e, etc.)
+* Operators
+    * Unary
+        * Pre-fix
+        * Post-fix
+    * Binary
+        * Pre-fix
+        * In-fix
+    * Multi
+        * Pre-fix
+* Parentheses
+    * Unlimited nesting permitted
+    * Not encouraged for animation currently

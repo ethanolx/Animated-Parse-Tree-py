@@ -4,8 +4,10 @@ from typing import List
 def strip_whitespace(string: str) -> str:
     return string.replace(' ', '')
 
+
 def simplify_expression(expr: str) -> str:
     return strip_whitespace(expr).lower()
+
 
 def concatenate_horizontally(*args: str) -> str:
     string_list: List[List[str]] = []
@@ -21,3 +23,7 @@ def concatenate_horizontally(*args: str) -> str:
                 pass
         result += '\n'
     return result
+
+
+def pad(left_pad: int, body: str, right_pad: int, pad_char: str = ' '):
+    return pad_char * left_pad + body + pad_char * right_pad

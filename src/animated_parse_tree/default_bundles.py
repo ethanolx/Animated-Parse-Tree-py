@@ -30,7 +30,7 @@ from math import log10, log
 EXPONENTIATION: Bundle = [
     Operator(symbol='^', func=lambda a, b: a ** b, priority=5),
     Operator(symbol='**', func=lambda a, b: a ** b, priority=5),
-    # Operator(symbol='log', func=lambda a, b: log(b, a), priority=7, kind='pre', operands=2),
+    Operator(symbol='log', func=lambda a, b: log(b, a), priority=7, kind='pre', operands=2),
     Operator(symbol='lg', func=lambda a: log10(a), priority=7, kind='pre', operands=1),
     Operator(symbol='ln', func=lambda a: log(a), priority=7, kind='pre', operands=1)
 ]

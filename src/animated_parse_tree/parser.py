@@ -39,6 +39,14 @@ class Parser:
                     token_obj_list=token_obj_list, operand_expected=True, index=index + 1, depth=depth + 1)
                 parsed_tokens.append(nested_parsed_tokens)
                 index = terminating_index
+            elif token_obj == ']':
+                if depth > 0:
+                    return index, parsed_tokens, operand_expected
+            elif token_obj == '[':
+                terminating_index, nested_parsed_tokens, operand_expected = self.parse(
+                    token_obj_list=token_obj_list, operand_expected=True, index=index + 1, depth=depth + 1)
+                parsed_tokens.append(nested_parsed_tokens)
+                index = terminating_index
             elif type(token_obj) is list:
                 # Operator overloaded
                 token_obj = find_element_where(

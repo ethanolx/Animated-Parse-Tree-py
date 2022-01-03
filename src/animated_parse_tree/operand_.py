@@ -22,7 +22,7 @@ class Operand(Node):
             return f'{self.value:^{self.width}.{self.precision}f}'
 
     def display(self) -> str:
-        return self.symbol
+        return ' ' * self.left_pad + self.symbol + ' ' * self.right_pad
 
     def __repr__(self) -> str:
         return f'Operand({self.value})'

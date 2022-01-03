@@ -1,4 +1,0 @@
-termcolor
-
-[dev]
-pytest

@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, cast
+from typing import Any, Callable, List, Literal, Optional, cast
 
 from .exceptions import TreeReprError, UpdateTreeError
 from .temp_node import Temp_Node
@@ -26,7 +26,8 @@ class Tree:
         elif not self.currentPointer.isFull():
             node.parent = self.currentPointer
             self.currentPointer.children.append(node)
-            self.currentPointer = node
+            if self.currentPointer.isFull():
+                self.currentPointer = node
         else:
             if node > self.currentPointer:
                 node.children.append(self.currentPointer.children.pop())
@@ -62,20 +63,37 @@ class Tree:
         if len(node.children) > 0:
             for c in node.children:
                 self.update_dims(c)
-            node.width = sum(map(lambda n: n.width, node.children)
-                             ) + (len(node.children) - 1) * self.padding
+            node.sub_width = sum(map(lambda n: n.width, node.children)
+                                 ) + (len(node.children) - 1) * self.padding
+            node.width = max(node.inner_width, node.sub_width)
             node.height = max(map(lambda n: n.height, node.children)) + 1
             node.bal_coef = node.get_balance_coefficient()
 
     def update_paddings(self, node: Node):
-        if len(node.children) > 0:
-            node.left_pad += max(ceil((node.inner_width - node.width) / 2), 0)
-            node.right_pad += max((node.inner_width - node.width) // 2, 0)
-            if node.parent is not None:
+        if node.parent is not None:
+            if node.parent.inner_width > node.parent.sub_width:
+                if node is node.parent.children[0]:
+                    node.left_pad += ceil((node.parent.inner_width -
+                                          node.parent.sub_width) / 2)
+                if node is node.parent.children[-1]:
+                    node.right_pad += (node.parent.inner_width -
+                                       node.parent.sub_width) // 2
+            if node is node.parent.children[0]:
                 node.left_pad += node.parent.left_pad
+            if node is node.parent.children[-1]:
                 node.right_pad += node.parent.right_pad
+        for c in node.children:
+            self.update_paddings(c)
+
+    def reset_paddings(self, node: Node = None):
+        if self.root is not None:
+            if node is None:
+                node = self.root
+            node.left_pad = 0
+            node.right_pad = 0
             for c in node.children:
-                self.update_paddings(c)
+                self.reset_paddings(node=c)
+        return self
 
     def generate_tmp_nodes(self, node: Node, depth: int = 1):
         if len(node.children) > 0:
@@ -99,9 +117,10 @@ class Tree:
         if self.root is not None:
             if which != 'dimensions':
                 self.update_values(node=self.root)
-                self.update_paddings(node=self.root)
             if which != 'values':
                 self.update_dims(node=self.root)
+                self.reset_paddings(node=self.root)
+                self.update_paddings(node=self.root)
             if which not in ['all', 'dimensions', 'values']:
                 raise UpdateTreeError(
                     f'Unexpected value \'{which}\' for \'which\' parameter encountered')
@@ -140,19 +159,50 @@ class Tree:
                                 result += n.display() + ' ' * self.padding
                             else:
                                 # result += f'{self.middle_branch:^{n.width}} '
-                                result += n.branch(self.middle_branch) + ' ' * self.padding
+                                result += n.branch(self.middle_branch) + \
+                                    ' ' * self.padding
                         elif no_of_children > 1:
                             # result += f'{self.left_branch:^{n_ls[0].width}} '
-                            result += n_ls[0].branch(self.left_branch) + ' ' * self.padding
+                            result += n_ls[0].branch(self.left_branch) + \
+                                ' ' * self.padding
                             for n in n_ls[1:-1]:
                                 # result += f'{self.middle_branch:^{n.width}} '
-                                result += n.branch(self.middle_branch) + ' ' * self.padding
+                                result += n.branch(self.middle_branch) + \
+                                    ' ' * self.padding
                             # result += f'{self.right_branch:^{n_ls[-1].width}} '
-                            result += n_ls[-1].branch(self.right_branch) + ' ' * self.padding
+                            result += n_ls[-1].branch(self.right_branch) + \
+                                ' ' * self.padding
                     result += '\n'
             # Remove 2 redundant newline characters at end of string
             return result[:-2]
         raise TreeReprError('Empty Tree Encountered')
 
+    def bfs(self,
+            callback: Callable[[Node], Any] = lambda _: None,
+            current_nodes: List[Node] = None) -> None:
+        if self.root is not None:
+            if current_nodes is None:
+                current_nodes = [self.root]
+            next_nodes = []
+            for c in current_nodes:
+                callback(c)
+                next_nodes.extend(c.children)
+            if len(next_nodes) > 0:
+                self.bfs(callback=callback, current_nodes=next_nodes)
+
+    def dfs(self,
+            pre_callback: Callable[[Node], Any] = lambda _: None,
+            post_callback: Callable[[Node], Any] = lambda _: None,
+            current_node: Node = None) -> None:
+        if self.root is not None:
+            if current_node is None:
+                current_node = self.root
+            pre_callback(current_node)
+            for c in current_node.children:
+                self.dfs(pre_callback=pre_callback,
+                         post_callback=post_callback,
+                         current_node=c)
+            post_callback(current_node)
+
     def __call__(self):
-        pass
+        return self
