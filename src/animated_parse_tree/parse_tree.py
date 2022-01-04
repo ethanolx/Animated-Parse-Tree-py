@@ -21,7 +21,7 @@ from .default_bundles import *
 # Utilities
 from .utils.io_utils import clear_console
 from .utils.list_utils import find_element_where, index_first_element
-from .utils.string_utils import simplify_expression
+from .utils.string_utils import concatenate_horizontally, simplify_expression
 from string import ascii_lowercase
 from termcolor import colored
 from copy import copy, deepcopy
@@ -157,6 +157,21 @@ class ParseTree(Tree):
                 self.insert(token_obj)
         return self.root, self.currentPointer
 
+    def lazy_build_sub_tree(self, token_obj_list: List):
+        for token_obj in token_obj_list:
+            if type(token_obj) is list:
+                t = ParseTree()
+                for tmp in t.lazy_build_sub_tree(token_obj_list=token_obj):
+                    yield (self, *tmp)
+                sub_root = t.root
+                if sub_root is None:
+                    raise ParsingError('Empty parenthesis encountered')
+                sub_root.priority += 20
+                self.insert(sub_root)
+            else:
+                self.insert(token_obj)
+                yield (self,)
+
     def build(self):
         if self.expression.strip() != '':
             self.reset()
@@ -173,6 +188,9 @@ class ParseTree(Tree):
     def __str__(self) -> str:
         if self.root is None or self.expression != self.__last_build_expression:
             self()
+        return super().__str__()
+
+    def str_without_building(self) -> str:
         return super().__str__()
 
     def validate_full_tree(self, node: Optional[Node]) -> None:
@@ -279,13 +297,11 @@ class Scene:
 
     def animate_building(self, expression, tokens, lexed, parsed):
         tree = ParseTree()
-        for i in range(1, len(parsed) + 1):
+        for trees in tree.lazy_build_sub_tree(parsed):
             self.stencil(expression, tokens, lexed, parsed)
-            tmp_parsed = deepcopy(parsed[:i])
-            t = ParseTree()
-            t.build_sub_tree(tmp_parsed)
-            print(t)
-            tree = t
+            print(concatenate_horizontally(map(lambda t: t.str_without_building(), filter(
+                lambda t: t.root is not None, trees)), padding=2))
+            tree = trees[0]
             sleep(self.seconds_per_frame * self.build_tree_ratio)
         return tree
 

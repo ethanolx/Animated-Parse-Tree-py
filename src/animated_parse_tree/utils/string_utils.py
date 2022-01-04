@@ -1,4 +1,4 @@
-from typing import List
+from typing import Iterable, List
 
 
 def strip_whitespace(string: str) -> str:
@@ -9,7 +9,7 @@ def simplify_expression(expr: str) -> str:
     return strip_whitespace(expr).lower()
 
 
-def concatenate_horizontally(*args: str) -> str:
+def concatenate_horizontally(args: Iterable[str], padding: int = 0) -> str:
     string_list: List[List[str]] = []
     for string in args:
         string_list.append(string.splitlines())
@@ -20,7 +20,8 @@ def concatenate_horizontally(*args: str) -> str:
             try:
                 result += ls[i]
             except IndexError:
-                pass
+                result += ' ' * len(ls[0])
+            result += ' ' * padding
         result += '\n'
     return result
 

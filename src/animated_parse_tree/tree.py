@@ -47,12 +47,14 @@ class Tree:
             self.float_node(node=node)
         else:
             node.children.append(self.currentPointer.children.pop())
+            node.parent = self.currentPointer
             self.currentPointer.children.append(node)
             self.currentPointer = node
 
     def reset(self):
         self.root = None
         self.currentPointer = None
+        return self
 
     def update_values(self, node: Node):
         for c in node.children:
@@ -67,7 +69,8 @@ class Tree:
                                  ) + (len(node.children) - 1) * self.padding
             node.width = max(node.inner_width, node.sub_width)
             node.height = max(map(lambda n: n.height, node.children)) + 1
-            node.bal_coef = node.get_balance_coefficient()
+            if node.inner_width <= node.sub_width:
+                node.bal_coef = node.get_balance_coefficient()
 
     def update_paddings(self, node: Node):
         if node.parent is not None:

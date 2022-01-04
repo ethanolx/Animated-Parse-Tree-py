@@ -39,10 +39,10 @@ class Parser:
                     token_obj_list=token_obj_list, operand_expected=True, index=index + 1, depth=depth + 1)
                 parsed_tokens.append(nested_parsed_tokens)
                 index = terminating_index
-            elif token_obj == ']':
+            elif token_obj == '}':
                 if depth > 0:
                     return index, parsed_tokens, operand_expected
-            elif token_obj == '[':
+            elif token_obj == '{':
                 terminating_index, nested_parsed_tokens, operand_expected = self.parse(
                     token_obj_list=token_obj_list, operand_expected=True, index=index + 1, depth=depth + 1)
                 parsed_tokens.append(nested_parsed_tokens)
@@ -75,9 +75,7 @@ class Parser:
             parsed_tokens.append(token_obj)
             return True
         elif (not operand_expected) and isinstance(token_obj, Operator) and token_obj.kind == 'post':
-            prev_token_obj = parsed_tokens.pop()
             parsed_tokens.append(token_obj)
-            parsed_tokens.append(prev_token_obj)
             return operand_expected
         elif (not operand_expected) and isinstance(token_obj, Operator):
             parsed_tokens.append(token_obj)

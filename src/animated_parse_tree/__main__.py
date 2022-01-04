@@ -24,15 +24,18 @@ class InteractivePlayground:
     def introduction(self) -> None:
         greeting = 'Greetings...\n'\
                    '\n'\
-                   '                \"This is a utility program which aims\n'\
-                   '                    to show the beauty of parse trees\n'\
-                   '                           in a fun and engaging way\"\n'\
+                   '             \"This is a utility program which aims\n'\
+                   '                 to show the beauty of parse trees\n'\
+                   '                        in a fun and engaging way\"\n'\
                    '\n'\
                    'Don\'t be intimidated :)\n'\
                    'It was designed to be easy to use, yet extensible.\n'\
                    '\n'\
-                   '                                               Enjoy!'
-        variable_speed_print(message=greeting, seconds_per_char=0.05)
+                   '                                            Enjoy!'
+        variable_speed_print(message=greeting,
+                             seconds_per_char=0.05,
+                             space_ratio=0.01,
+                             seconds_newline=2)
 
     # Help Menu
     def help(self) -> None:
