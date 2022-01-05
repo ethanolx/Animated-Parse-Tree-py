@@ -1,4 +1,6 @@
 from typing import Callable, List, Literal, Union
+
+from .utils.priority import Priority
 from .exceptions import ReduceTreeError
 from .node import Node
 from math import ceil
@@ -8,14 +10,13 @@ class Operator(Node):
     def __init__(self,
                  symbol: str,
                  func: Callable,
-                 priority: int,
-                 kind: Union[Literal['pre'], Literal['in'],
-                             Literal['post']] = 'in',
-                 operands: int = 2,
+                 priority: Union[int, Priority],
+                 kind: Union[Literal['pre'], Literal['in'], Literal['post']],
+                 operands: int,
                  **kwargs):
         super().__init__(**kwargs)
         self.symbol: str = symbol
-        self.priority = priority
+        self.priority: int = priority.value if isinstance(priority, Priority) else priority
         self.kind = kind
         self.operands = operands
         self.func = func

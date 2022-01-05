@@ -28,3 +28,7 @@ def concatenate_horizontally(args: Iterable[str], padding: int = 0) -> str:
 
 def pad(left_pad: int, body: str, right_pad: int, pad_char: str = ' '):
     return pad_char * left_pad + body + pad_char * right_pad
+
+
+def validate_block(s: str) -> bool:
+    return False

@@ -1,4 +1,6 @@
 from typing import Optional, Union
+
+from .utils.priority import Priority
 from .node import Node
 
 
@@ -13,7 +15,7 @@ class Operand(Node):
         self.symbol: str = symbol if symbol is not None else self.__str__()
         self.inner_width = len(self.symbol)
         self.width = len(self.symbol)
-        self.priority = 20
+        self.priority: int = Priority.OPERAND.value
 
     def __str__(self) -> str:
         if type(self.value) is int or len(str(self.value).split('.')[1]) <= self.precision:

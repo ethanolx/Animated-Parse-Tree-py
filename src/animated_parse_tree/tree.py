@@ -30,6 +30,8 @@ class Tree:
                 self.currentPointer = node
         else:
             if node > self.currentPointer:
+                node.parent = self.currentPointer
+                self.currentPointer.children[-1].parent = node
                 node.children.append(self.currentPointer.children.pop())
                 self.currentPointer.children.append(node)
                 self.currentPointer = node
@@ -46,8 +48,9 @@ class Tree:
             self.currentPointer = self.currentPointer.parent
             self.float_node(node=node)
         else:
-            node.children.append(self.currentPointer.children.pop())
             node.parent = self.currentPointer
+            self.currentPointer.children[-1].parent = node
+            node.children.append(self.currentPointer.children.pop())
             self.currentPointer.children.append(node)
             self.currentPointer = node
 
@@ -124,7 +127,7 @@ class Tree:
                 self.update_dims(node=self.root)
                 self.reset_paddings(node=self.root)
                 self.update_paddings(node=self.root)
-            if which not in ['all', 'dimensions', 'values']:
+            if which not in {'all', 'dimensions', 'values'}:
                 raise UpdateTreeError(
                     f'Unexpected value \'{which}\' for \'which\' parameter encountered')
 

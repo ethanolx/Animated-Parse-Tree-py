@@ -26,6 +26,7 @@ src/animated_parse_tree/utils/custom_functions.py
 src/animated_parse_tree/utils/io_utils.py
 src/animated_parse_tree/utils/list_utils.py
 src/animated_parse_tree/utils/mode.py
+src/animated_parse_tree/utils/priority.py
 src/animated_parse_tree/utils/string_utils.py
 src/animated_parse_tree/v1/__init__.py
 src/animated_parse_tree/v1/__main__.py

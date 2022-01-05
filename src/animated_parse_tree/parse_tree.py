@@ -31,13 +31,16 @@ class ParseTree(Tree):
     def __init__(self,
                  bundles: List[Bundle] = [
                      BASICS,
+                     INCREMENT,
+                     MOD,
                      CONSTANTS,
-                     EXPONENTIATION,
+                     POWER,
                      TRIGONOMETRY,
-                     FACTORIAL
+                     FACTORIAL,
+                     LOGIC
                  ],
                  implicit_operator: Operator = Operator(
-                     symbol='.', func=lambda a, b: a * b, priority=19),
+                     symbol='.', func=lambda a, b: a * b, priority=Priority.IMPLICIT, kind='in', operands=2),
                  **kwargs):
         super().__init__(**kwargs)
         self.expression = ''
@@ -45,10 +48,8 @@ class ParseTree(Tree):
         self.__token_lookup: Dict[str, Union[List[Operator], Operand]] = dict()
         self.__implicit_operator = implicit_operator
         self.__tokenizer = Tokenizer(token_lookup=self.__token_lookup)
-        self.__lexer = Lexer(token_lookup=self.__token_lookup,
-                             implicit_operator=self.__implicit_operator)
-        self.__parser = Parser(
-            token_lookup=self.__token_lookup, implicit_operator=self.__implicit_operator)
+        self.__lexer = Lexer(token_lookup=self.__token_lookup, implicit_operator=self.__implicit_operator)
+        self.__parser = Parser(token_lookup=self.__token_lookup, implicit_operator=self.__implicit_operator)
         for bundle in bundles:
             self.register(bundle=bundle)
 
@@ -168,6 +169,7 @@ class ParseTree(Tree):
                     raise ParsingError('Empty parenthesis encountered')
                 sub_root.priority += 20
                 self.insert(sub_root)
+                yield (self,)
             else:
                 self.insert(token_obj)
                 yield (self,)
@@ -297,10 +299,15 @@ class Scene:
 
     def animate_building(self, expression, tokens, lexed, parsed):
         tree = ParseTree()
+        prev_display = ''
         for trees in tree.lazy_build_sub_tree(parsed):
+            next_display = concatenate_horizontally(map(lambda t: t.str_without_building(), filter(
+                lambda t: t.root is not None, trees)), padding=2)
+            if next_display == prev_display:
+                continue
             self.stencil(expression, tokens, lexed, parsed)
-            print(concatenate_horizontally(map(lambda t: t.str_without_building(), filter(
-                lambda t: t.root is not None, trees)), padding=2))
+            print(next_display)
+            prev_display = next_display
             tree = trees[0]
             sleep(self.seconds_per_frame * self.build_tree_ratio)
         return tree
@@ -325,6 +332,8 @@ class Scene:
             yield from self.dfs_reduce(c, tree)
         for i, c in enumerate(node.children):
             node.children[i] = Operand(value=c())
+            node.children[i].parent = node
+            tree.update(which='dimensions')
             yield tree
 
     def animate(self, expression):

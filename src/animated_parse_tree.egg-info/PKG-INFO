@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: animated-parse-tree
-Version: 0.0.11
+Version: 0.0.12
 Summary: A simple parse tree utility package, with animated evaluations and configurable tree displays
 Home-page: https://github.com/ethanolx/Animated-Parse-Tree-py
 Author: ethanolx
@@ -112,33 +112,53 @@ To extend functionality, one simply has to register their own custom operands/op
 # Instantiate Parse Tree Object
 t = ParseTree()
 
-# Declaring Custom Operator
-op = Operator(symbol='if', func=lambda a,b,c: b if a == 1 else c, priority=7, kind='pre', operands=3)
+# Declare Custom Operand/Operator(s)
+op = Operator(symbol='sum', func=lambda *args: sum(args), priority=Priority.PRE, kind='pre', operands=4)
 
-# Register the Custom Operator(s)
+# Register the Custom Operand/Operator(s)
 t.register(bundle=[op])
 
 # Use it in Expressions
-t.read('if(1, 8, -1)')
+t.read('sum(0.1, 2.5, 30, 49)')
+
+# Animate all the Processes
+t.animate(seconds_per_frame=1.0)
+
+# Display the Parse Tree
+print(str(t))
+
+# Evaluate the Expression
 print(t.evaluate())
 ```
 
 ## Current Support
 
 * Operands
-    * Integers
-    * Floats
-    * Constants (like pi, e, etc.)
+    * Integers (-1, 0, 2345)
+    * Floats (0.0, 2.5, -0.77)
+    * Constants (pi, e)
 * Operators
     * Unary
-        * Pre-fix
-        * Post-fix
+        * Pre-fix (lg, -)
+        * Post-fix (deg, !)
     * Binary
-        * Pre-fix
-        * In-fix
+        * Pre-fix (log)
+        * In-fix (+, -, *, /, ^)
     * Multi
-        * Pre-fix
+        * Pre-fix (if)
 * Parentheses
-    * Unlimited nesting permitted
-    * Not encouraged for animation currently
+    * Unlimited nesting
+
+### Other Features Supported
+
+* Implicit Operator (default is higher-priority multiplication)
+* Operator Overloading (maximum of 2: 1 pre-fix and 1 non-pre-fix)
+* Custom Word Operands/Operators (operands/operators whose symbols are lowercase alphabetical characters)
+* Custom Symbol Operands/Operators (operands/operators whose symbols are special characters)
+
+## See Also
+
+- [GitHub Source Code](https://github.com/ethanolx/Animated-Parse-Tree-py)
+- [Full Documentation](https://github.com/ethanolx/Animated-Parse-Tree-py/wiki)
+- [Python Package (PyPI)](https://pypi.org/project/animated-parse-tree)
 

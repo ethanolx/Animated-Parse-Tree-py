@@ -1,10 +1,10 @@
 from typing import Dict, List, Union, cast
-
 from .utils.string_utils import simplify_expression
 from .parse_tree import ParseTree
 from .utils.mode import Mode
 from .utils.io_utils import clear_console, variable_speed_print
 from sys import argv
+import os
 
 
 class InteractivePlayground:
@@ -21,17 +21,19 @@ class InteractivePlayground:
             self.run()
 
     # Introductory Menu
-    def introduction(self) -> None:
-        greeting = 'Greetings...\n'\
-                   '\n'\
-                   '             \"This is a utility program which aims\n'\
-                   '                 to show the beauty of parse trees\n'\
-                   '                        in a fun and engaging way\"\n'\
-                   '\n'\
-                   'Don\'t be intimidated :)\n'\
-                   'It was designed to be easy to use, yet extensible.\n'\
-                   '\n'\
-                   '                                            Enjoy!'
+    def introduction(self, screen_width: int = None, max_width: int = 75) -> None:
+        if screen_width is None:
+            screen_width = min(os.get_terminal_size()[0], max_width)
+        greeting = 'Greetings...\n' + \
+                   '\n' + \
+                   '{:>{}}'.format('\"This is a utility program which aims\n', screen_width) + \
+                   '{:>{}}'.format('to show the beauty of parse trees\n', screen_width) + \
+                   '{:>{}}'.format('in a fun and engaging way\"\n', screen_width) + \
+                   '\n' + \
+                   'Don\'t be intimidated :)\n' + \
+                   'It was designed to be easy to use, yet extensible.\n' + \
+                   '\n' + \
+                   '{:>{}}'.format('Enjoy! ', screen_width)
         variable_speed_print(message=greeting,
                              seconds_per_char=0.05,
                              space_ratio=0.01,
@@ -106,6 +108,7 @@ class InteractivePlayground:
         if '-q' not in self.__options:
             self.introduction()
         expression = input('?> ')
+        t = ParseTree()
         while expression not in {'', 'exit', 'quit'}:
             try:
                 if expression == 'mode':
@@ -113,7 +116,6 @@ class InteractivePlayground:
                 elif expression == 'help':
                     self.help()
                 else:
-                    t = ParseTree()
                     t.read(expression)
                     if type(self.__current_mode) is list:
                         for action in self.__current_mode:
